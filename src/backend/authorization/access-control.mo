@@ -21,6 +21,12 @@ module {
     };
   };
 
+  // Force a principal to have admin role (used for hardcoded admins).
+  public func forceAdmin(state : AccessControlState, principal : Principal) {
+    state.userRoles.add(principal, #admin);
+    state.adminAssigned := true;
+  };
+
   // First principal that calls this function becomes admin, all other principals become users.
   public func initialize(state : AccessControlState, caller : Principal, adminToken : Text, userProvidedToken : Text) {
     if (caller.isAnonymous()) { return };
@@ -37,29 +43,13 @@ module {
     };
   };
 
-  // Assign admin to a specific principal unconditionally (used for hardcoded admins)
-  public func forceAdmin(state : AccessControlState, principal : Principal) {
-    state.userRoles.add(principal, #admin);
-    state.adminAssigned := true;
-  };
-
-  // Claim admin if no admin has been assigned yet
-  public func claimIfNone(state : AccessControlState, caller : Principal) : Bool {
-    if (caller.isAnonymous()) { return false };
-    if (not state.adminAssigned) {
-      state.userRoles.add(caller, #admin);
-      state.adminAssigned := true;
-      true
-    } else {
-      false
-    };
-  };
-
   public func getUserRole(state : AccessControlState, caller : Principal) : UserRole {
     if (caller.isAnonymous()) { return #guest };
     switch (state.userRoles.get(caller)) {
       case (?role) { role };
-      case (null) { #guest };
+      case (null) {
+        Runtime.trap("User is not registered");
+      };
     };
   };
 

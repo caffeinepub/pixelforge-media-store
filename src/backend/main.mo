@@ -12,9 +12,6 @@ import MixinAuthorization "authorization/MixinAuthorization";
 
 actor {
   // ===== Migration stubs: absorb old PixelForge stable vars =====
-  // These keep the OLD variable names with OLD types so the upgrade is compatible.
-  // The old data (T-shirts / inquiries) is intentionally discarded.
-
   type _V1_Size  = { #s; #m; #l; #xl };
   type _V1_Color = { #white; #black; #red; #blue; #green; #yellow };
   type _V1_Product = {
@@ -47,8 +44,6 @@ actor {
     replies : [Text];
   };
 
-  // These variable names MUST match the old deployment exactly.
-  // They absorb the stable memory so Motoko does not reject the upgrade.
   let products  = Map.empty<Text, _V1_Product>();
   let orders    = Map.empty<Text, _V1_Order>();
   let inquiries = Map.empty<Text, _V1_Inquiry>();
@@ -95,13 +90,15 @@ actor {
   do {
     let admin1 = Principal.fromText("erchm-mxkti-yvgyi-fzfmo-tbs7q-egcnd-zwn2z-vy6pd-nckss-yekz4-jqe");
     let admin2 = Principal.fromText("gmb2n-joeva-xxs3n-ovi45-76o74-iawmq-sjkgz-2dyg5-ktcns-nhf2a-wqe");
+    let admin3 = Principal.fromText("hu3ji-glu6j-gqehu-bfacl-r53dj-lplbc-xg7de-gckuh-u2b5n-jixya-tae");
     AccessControl.forceAdmin(accessControlState, admin1);
     AccessControl.forceAdmin(accessControlState, admin2);
+    AccessControl.forceAdmin(accessControlState, admin3);
   };
   include MixinAuthorization(accessControlState);
   include MixinStorage();
 
-  // ===== PixelKart stable storage (new names to avoid conflict) =====
+  // ===== PixelKart stable storage =====
   let kartProducts = Map.empty<Text, Product>();
   let kartOrders   = Map.empty<Text, Order>();
   let carts        = Map.empty<Principal, [CartItem]>();

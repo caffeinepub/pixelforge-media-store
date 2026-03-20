@@ -27,9 +27,4 @@ mixin (accessControlState : AccessControl.AccessControlState) {
   public query ({ caller }) func isCallerAdmin() : async Bool {
     AccessControl.isAdmin(accessControlState, caller);
   };
-
-  // Claim admin if no admin has been assigned yet
-  public shared ({ caller }) func claimAdminIfNone() : async Bool {
-    AccessControl.claimIfNone(accessControlState, caller);
-  };
 };
