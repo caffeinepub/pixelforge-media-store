@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Settings, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Plus, Settings, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Color, ExternalBlob, OrderStatus, Size } from "../backend";
 import { Badge } from "../components/ui/badge";
@@ -31,12 +31,40 @@ export default function AdminPage() {
   const { identity, login } = useInternetIdentity();
   const qc = useQueryClient();
   const isLoggedIn = identity && !identity.getPrincipal().isAnonymous();
+  const claimAttempted = useRef(false);
+  const [claiming, setClaiming] = useState(false);
+  const [claimDenied, setClaimDenied] = useState(false);
 
   const { data: isAdmin, isLoading: checkingAdmin } = useQuery({
     queryKey: ["isAdmin"],
     queryFn: () => actor!.isCallerAdmin(),
     enabled: !!actor && !!isLoggedIn,
   });
+
+  // When isAdmin comes back false, attempt to claim admin if no admin exists
+  useEffect(() => {
+    if (!actor || !isLoggedIn || isAdmin !== false || claimAttempted.current)
+      return;
+    claimAttempted.current = true;
+
+    const claim = async () => {
+      setClaiming(true);
+      try {
+        const granted: boolean = await (actor as any).claimAdminIfNone();
+        if (granted) {
+          qc.invalidateQueries({ queryKey: ["isAdmin"] });
+        } else {
+          setClaimDenied(true);
+        }
+      } catch {
+        setClaimDenied(true);
+      } finally {
+        setClaiming(false);
+      }
+    };
+
+    claim();
+  }, [actor, isLoggedIn, isAdmin, qc]);
 
   if (!isLoggedIn) {
     return (
@@ -57,18 +85,22 @@ export default function AdminPage() {
     );
   }
 
-  if (checkingAdmin) {
+  if (checkingAdmin || claiming) {
     return (
       <div
-        className="max-w-4xl mx-auto px-4 py-32 flex justify-center"
+        className="max-w-4xl mx-auto px-4 py-32 flex flex-col items-center gap-4"
         data-ocid="admin.loading_state"
       >
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-muted-foreground text-sm">
+          {claiming ? "Setting up admin access..." : "Checking permissions..."}
+        </p>
         <Skeleton className="h-12 w-48" />
       </div>
     );
   }
 
-  if (!isAdmin) {
+  if (claimDenied || (!isAdmin && !claiming)) {
     return (
       <div
         className="max-w-2xl mx-auto px-4 py-32 text-center"

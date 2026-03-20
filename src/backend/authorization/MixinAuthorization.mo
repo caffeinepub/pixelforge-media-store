@@ -15,6 +15,11 @@ mixin (accessControlState : AccessControl.AccessControlState) {
     };
   };
 
+  // Auto-assign admin to caller if no admin has been set yet.
+  public shared ({ caller }) func claimAdminIfNone() : async Bool {
+    AccessControl.claimAdminIfNone(accessControlState, caller);
+  };
+
   public query ({ caller }) func getCallerUserRole() : async AccessControl.UserRole {
     AccessControl.getUserRole(accessControlState, caller);
   };
