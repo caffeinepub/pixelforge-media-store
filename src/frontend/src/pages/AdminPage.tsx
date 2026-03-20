@@ -34,6 +34,9 @@ export default function AdminPage() {
   const claimAttempted = useRef(false);
   const [claiming, setClaiming] = useState(false);
   const [claimDenied, setClaimDenied] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const principalId = isLoggedIn ? identity.getPrincipal().toText() : null;
 
   const { data: isAdmin, isLoading: checkingAdmin } = useQuery({
     queryKey: ["isAdmin"],
@@ -101,15 +104,40 @@ export default function AdminPage() {
   }
 
   if (claimDenied || (!isAdmin && !claiming)) {
+    const handleCopy = () => {
+      if (principalId) {
+        navigator.clipboard.writeText(principalId);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    };
+
     return (
       <div
         className="max-w-2xl mx-auto px-4 py-32 text-center"
         data-ocid="admin.error_state"
       >
         <h1 className="text-3xl font-bold mb-4">Access Denied</h1>
-        <p className="text-muted-foreground">
-          You don't have admin privileges.
+        <p className="text-muted-foreground mb-8">
+          You don't have admin privileges. Share your Principal ID with the site
+          owner to get access.
         </p>
+        {principalId && (
+          <div className="bg-muted rounded-lg p-4 text-left mb-4">
+            <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase tracking-wide">
+              Your Principal ID
+            </p>
+            <p className="font-mono text-sm break-all mb-3">{principalId}</p>
+            <Button
+              onClick={handleCopy}
+              variant="outline"
+              size="sm"
+              className="w-full"
+            >
+              {copied ? "Copied!" : "Copy to Clipboard"}
+            </Button>
+          </div>
+        )}
       </div>
     );
   }

@@ -37,15 +37,21 @@ module {
     };
   };
 
-  // Auto-assign admin to caller if no admin exists yet.
-  public func claimAdminIfNone(state : AccessControlState, caller : Principal) : Bool {
+  // Assign admin to a specific principal unconditionally (used for hardcoded admins)
+  public func forceAdmin(state : AccessControlState, principal : Principal) {
+    state.userRoles.add(principal, #admin);
+    state.adminAssigned := true;
+  };
+
+  // Claim admin if no admin has been assigned yet
+  public func claimIfNone(state : AccessControlState, caller : Principal) : Bool {
     if (caller.isAnonymous()) { return false };
     if (not state.adminAssigned) {
       state.userRoles.add(caller, #admin);
       state.adminAssigned := true;
-      true;
+      true
     } else {
-      false;
+      false
     };
   };
 

@@ -91,6 +91,13 @@ actor {
 
   // ===== Component state =====
   let accessControlState = AccessControl.initState();
+  // Hardcoded admin principals
+  do {
+    let admin1 = Principal.fromText("erchm-mxkti-yvgyi-fzfmo-tbs7q-egcnd-zwn2z-vy6pd-nckss-yekz4-jqe");
+    let admin2 = Principal.fromText("gmb2n-joeva-xxs3n-ovi45-76o74-iawmq-sjkgz-2dyg5-ktcns-nhf2a-wqe");
+    AccessControl.forceAdmin(accessControlState, admin1);
+    AccessControl.forceAdmin(accessControlState, admin2);
+  };
   include MixinAuthorization(accessControlState);
   include MixinStorage();
 
